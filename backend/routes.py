@@ -50,14 +50,69 @@ def parse_json(data):
 
 @app.route('/health')
 def health():
-    return jsonify(dict(status="OK")), 200
+    return (jsonify(dict(status="OK")), 200)
     
 
 @app.route("/count")
 def count():
     """return length of data"""
     if songs_list:
-        return jsonify(length=len(songs_list)), 200
+        return (jsonify(length=len(songs_list)), 200)
 
-    return {"message": "Internal server error"}, 500
+    return ({"message": "Internal server error"}, 500)
 
+
+@app.route("/song", methods=["GET"])
+def songs():
+    allData = list(db.songs.find({}))
+    print(allData[0])
+    return ({"songs":parse_json(allData)}, 200)
+        
+
+@app.route("/song/<int:id>", methods=["GET"])
+def get_song_by_id(id):
+    song = db.songs.find_one({"id":id})
+    if not song:
+        return {"message":f"song with {id} not found"}, 404
+
+    return (parse_json(song), 200)
+
+
+@app.route("/song", methods=["POST"])
+def create_song():
+    songData = request.json
+    song = db.songs.find_one({"id": songData["id"]})
+
+    if song:
+        return ({"Message":f"song with id {songData['id']} already present"}, 302)
+
+    insert_id: InsertOneResult = db.songs.insert_one(songData)
+    return ({"inserted id":parse_json(insert_id.inserted_id)}, 201)
+
+
+
+@app.route("/song/<int:id>", methods=["PUT"])
+def update_song(id):
+    extractSong = request.json
+    song = db.songs.find_one({"id":id})
+
+    if not song: 
+        return ({"message": "song not found"}, 404)
+
+    updateData = {"$set": extractSong}
+    result = db.songs.update_one({"id": id}, updateData)
+
+    if result.modified_count == 0:
+        return ({"message":"song found, but nothing updated"}, 200)
+    else:
+        return (parse_json(db.songs.find_one({"id":id})), 200)
+
+
+
+@app.route("/song/<int:id>", methods=["DELETE"])
+def delate_song(id):
+    result = db.songs.delete_one({"id": id}) # extract id from URL
+    if result.deleted_count == 0:
+        return ({"message":"song not found"}, 404)
+    else:
+        return ("", 204)
