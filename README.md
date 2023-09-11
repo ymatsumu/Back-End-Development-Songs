@@ -1,5 +1,4 @@
-## Back-end Application Development Capstone Project
-# Create Get Pictures Service with Flask
+# Back-end Application Development Capstone Project - Create Get Pictures Service with Flask
 
 * This is one of projects for completing [IBM Back-End Development Professional Certificate](https://www.coursera.org/professional-certificates/ibm-backend-development). 
 
